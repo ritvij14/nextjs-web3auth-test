@@ -1,7 +1,56 @@
-import Head from "next/head"
-import styles from "../styles/Home.module.css"
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { Web3Auth } from "@web3auth/modal";
+import { CHAIN_NAMESPACES } from "@web3auth/base";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [web3auth, setWeb3auth] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const clientId =
+    "BHr_dKcxC0ecKn_2dZQmQeNdjPgWykMkcodEHkVvPMo71qzOV6SgtoN8KCvFdLN7bf34JOm89vWQMLFmSfIo84A";
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const web3auth = new Web3Auth({
+          clientId,
+          chainConfig: {
+            chainNamespace: CHAIN_NAMESPACES.SOLANA,
+            chainId: "0x3", // Please use 0x1 for Mainnet, 0x2 for Testnet, 0x3 for Devnet
+            rpcTarget: "https://api.mainnet-beta.solana.com", // This is the public RPC we have added, please pass on your own endpoint while creating an app
+          },
+          uiConfig: {
+            theme: "dark",
+            loginMethodsOrder: ["facebook", "google"],
+            appLogo: "https://web3auth.io/images/w3a-L-Favicon-1.svg", // Your App Logo Here
+          },
+          // defaultLanguage: "en",
+        });
+
+        setWeb3auth(web3auth);
+
+        await web3auth.initModal();
+        if (web3auth.provider) {
+          setProvider(web3auth.provider);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    init();
+  }, []);
+
+  const login = async () => {
+    // if (!web3auth) {
+    //   uiConsole("web3auth not initialized yet");
+    //   return;
+    // }
+    const web3authProvider = await web3auth.connect();
+    setProvider(web3authProvider);
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -15,8 +64,11 @@ export default function Home() {
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
 
+        <button onClick={login}>Login</button>
+
         <p className={styles.description}>
-          Get started by editing <code className={styles.code}>pages/index.js</code>
+          Get started by editing{" "}
+          <code className={styles.code}>pages/index.js</code>
         </p>
 
         <div className={styles.grid}>
@@ -30,7 +82,10 @@ export default function Home() {
             <p>Learn about Next.js in an interactive course with quizzes!</p>
           </a>
 
-          <a href="https://github.com/vercel/next.js/tree/master/examples" className={styles.card}>
+          <a
+            href="https://github.com/vercel/next.js/tree/master/examples"
+            className={styles.card}
+          >
             <h2>Examples &rarr;</h2>
             <p>Discover and deploy boilerplate example Next.js projects.</p>
           </a>
@@ -40,7 +95,9 @@ export default function Home() {
             className={styles.card}
           >
             <h2>Deploy &rarr;</h2>
-            <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
+            <p>
+              Instantly deploy your Next.js site to a public URL with Vercel.
+            </p>
           </a>
         </div>
       </main>
@@ -58,5 +115,5 @@ export default function Home() {
         </a>
       </footer>
     </div>
-  )
+  );
 }
